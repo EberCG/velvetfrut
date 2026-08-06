@@ -368,6 +368,67 @@ document.querySelectorAll(".filter-chip").forEach((btn) => {
   });
 });
 
+/* ---------- EXPORTAR PEDIDOS A TXT ---------- */
+function generarTxtPedidos() {
+  const ventas = store.ventas.slice().sort((a, b) => (a.fecha < b.fecha ? 1 : -1));
+  const filtradas = ventasFiltro === "todas" ? ventas : ventas.filter((v) => v.estado === ventasFiltro);
+
+  const etiquetaFiltro = { todas: "Todas", pendiente: "Pendientes", pagado: "Pagadas" }[ventasFiltro];
+  const ahora = new Date();
+  const fechaGenerado = `${String(ahora.getDate()).padStart(2, "0")}/${String(ahora.getMonth() + 1).padStart(2, "0")}/${ahora.getFullYear()} ${String(ahora.getHours()).padStart(2, "0")}:${String(ahora.getMinutes()).padStart(2, "0")}`;
+
+  const bloques = filtradas.map((v) => {
+    const items = pedidoItems(v);
+    const porSabor = {};
+    items.forEach((item) => (porSabor[item.key] = porSabor[item.key] || []).push(item));
+    const lineas = MENU.filter((m) => porSabor[m.key] && porSabor[m.key].length);
+
+    const detalle = lineas.map((m) => {
+      const unidades = porSabor[m.key];
+      const filas = unidades.map((u, i) => {
+        const partes = [];
+        if (u.gratis) partes.push(u.gratis);
+        (u.pago || []).forEach((t) => partes.push(`${t} (+$${m.pagoPrecio})`));
+        const txt = partes.length ? partes.join(", ") : "sin toppings";
+        return unidades.length > 1 ? `     #${i + 1}: ${txt}` : `     ${txt}`;
+      });
+      return `  ${unidades.length}x ${m.nombre}\n${filas.join("\n")}`;
+    });
+
+    const fechaObj = parseISO(v.fecha);
+    const fechaTxt = `${DIA_NOMBRE[fechaObj.getDay()]} ${fechaObj.getDate()}/${fechaObj.getMonth() + 1}`;
+    const estadoTxt = v.estado === "pagado" ? "Pagado" : "Pendiente";
+    const origenTxt = v.origen === "cliente" ? " (pedido por su app)" : "";
+
+    return `${v.nombre} — ${fechaTxt}${origenTxt}\n${detalle.join("\n")}\nTotal: ${fmt(calcularTotal(v))} | Estado: ${estadoTxt}`;
+  });
+
+  const totalGeneral = filtradas.reduce((s, v) => s + calcularTotal(v), 0);
+  const separador = "―――――――――――――――――――――――――――――";
+
+  const txt = [
+    `VelvetFrut — Pedidos (${etiquetaFiltro})`,
+    `Generado: ${fechaGenerado}`,
+    separador,
+    bloques.length ? bloques.join(`\n${separador}\n`) : "No hay pedidos en este filtro.",
+    separador,
+    `Total ${etiquetaFiltro.toLowerCase()}: ${fmt(totalGeneral)} (${filtradas.length} pedido${filtradas.length === 1 ? "" : "s"})`,
+  ].join("\n\n");
+
+  const blob = new Blob([txt], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  const nombreArchivo = `velvetfrut-pedidos-${ventasFiltro}-${todayISO()}.txt`;
+  a.href = url;
+  a.download = nombreArchivo;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+document.getElementById("btnExportarTxt").addEventListener("click", generarTxtPedidos);
+
 /* ---------- MODAL CLIENTA ---------- */
 const modal = document.getElementById("modalClienta");
 // modalPedido = [{ key, gratis, pago: [] }, ...] — un item por cada
