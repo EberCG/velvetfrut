@@ -61,6 +61,7 @@ const firebaseConfig = {
   storageBucket: "velvet-frut.firebasestorage.app",
   messagingSenderId: "795859668940",
   appId: "1:795859668940:web:d176c6a5503ccc47315769"
+};
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 // caché sin conexión: si vendes sin wifi/datos, la app sigue funcionando y
