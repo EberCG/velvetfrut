@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>VelvetFrut — Control del Negocio</title>
+<meta name="theme-color" content="#8E2A45">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="VelvetFrut">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ===== ACCESO (solo tú, con correo y contraseña) ===== -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+    <img src="icons/icon-192.png" alt="" class="login-card__logo">
+    <h1 class="login-card__title">VelvetFrut</h1>
+    <p class="login-card__subtitle">Inicia sesión para entrar a tu panel</p>
+    <form id="loginForm">
+      <label class="field">
+        <span class="field__label">Correo</span>
+        <input type="email" id="loginEmail" placeholder="tu@correo.com" autocomplete="username" required>
+      </label>
+      <label class="field">
+        <span class="field__label">Contraseña</span>
+        <input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password" required>
+      </label>
+      <p class="login-card__error" id="loginError"></p>
+      <button type="submit" class="btn btn--primary" id="btnLogin" style="width:100%;">Entrar</button>
+    </form>
+  </div>
+</div>
+
+<div id="appRoot" hidden>
+
+<header class="topbar">
+  <div class="topbar__inner">
+    <div class="topbar__brand">
+      <img src="icons/icon-192.png" alt="" class="topbar__logo">
+      <div>
+        <p class="topbar__title" id="pageTitle">Lista del Súper</p>
+        <p class="topbar__subtitle" id="pageSubtitle">Ingresa lo que te costó cada producto</p>
+      </div>
+    </div>
+    <button class="install-btn" id="installBtn" hidden>📲 Instalar</button>
+    <button class="logout-btn" id="btnLogout" title="Cerrar sesión">⏻</button>
+  </div>
+</header>
+
+<main class="app">
+
+  <!-- ===== SUPER / MATERIA PRIMA ===== -->
+  <section class="panel" id="panel-super">
+    <div class="stat-hero">
+      <span class="stat-hero__label">Total gastado en el súper</span>
+      <span class="stat-hero__value" id="superTotal">$0.00</span>
+    </div>
+    <div id="superList" class="cat-list"></div>
+  </section>
+
+  <!-- ===== VENTAS ===== -->
+  <section class="panel" id="panel-ventas" hidden>
+    <div class="stat-row">
+      <div class="stat-chip stat-chip--leaf">
+        <span class="stat-chip__label">Cobrado</span>
+        <span class="stat-chip__value" id="ventasCobrado">$0</span>
+      </div>
+      <div class="stat-chip stat-chip--amber">
+        <span class="stat-chip__label">Pendiente</span>
+        <span class="stat-chip__value" id="ventasPendiente">$0</span>
+      </div>
+    </div>
+
+    <div class="filter-row">
+      <button class="filter-chip is-active" data-filter="todas">Todas</button>
+      <button class="filter-chip" data-filter="pendiente">Pendientes</button>
+      <button class="filter-chip" data-filter="pagado">Pagadas</button>
+    </div>
+
+    <div id="ventasList" class="client-list"></div>
+    <p id="ventasEmpty" class="empty-hint" hidden>Aún no tienes clientas registradas. Toca “+ Nueva clienta” para agregar la primera.</p>
+  </section>
+
+  <!-- ===== GANANCIAS ===== -->
+  <section class="panel" id="panel-ganancias" hidden>
+    <div class="week-nav">
+      <button id="weekPrev" class="week-nav__btn" aria-label="Semana anterior">‹</button>
+      <div class="week-nav__label">
+        <span id="weekRange">—</span>
+        <span id="weekBadge" class="week-nav__badge" hidden>Semana actual</span>
+      </div>
+      <button id="weekNext" class="week-nav__btn" aria-label="Semana siguiente">›</button>
+    </div>
+
+    <div class="stat-hero stat-hero--leaf">
+      <span class="stat-hero__label">Ingreso bruto de la semana</span>
+      <span class="stat-hero__value" id="ganIngreso">$0.00</span>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat-chip stat-chip--leaf">
+        <span class="stat-chip__label">Cobrado</span>
+        <span class="stat-chip__value" id="ganCobrado">$0</span>
+      </div>
+      <div class="stat-chip stat-chip--amber">
+        <span class="stat-chip__label">Pendiente</span>
+        <span class="stat-chip__value" id="ganPendiente">$0</span>
+      </div>
+      <div class="stat-chip stat-chip--berry">
+        <span class="stat-chip__label">Clientas</span>
+        <span class="stat-chip__value" id="ganClientas">0</span>
+      </div>
+    </div>
+
+    <p class="section-label">Por día de venta</p>
+    <div id="ganDias" class="day-list"></div>
+
+    <div class="quincena-note" id="quincenaNote">
+      Recuerda cobrar en la quincena a tus clientas pendientes.
+    </div>
+  </section>
+
+</main>
+
+<nav class="tabbar">
+  <button class="tabbar__item is-active" data-tab="super">
+    <span class="tabbar__icon">🛒</span><span>Súper</span>
+  </button>
+  <button class="tabbar__item" data-tab="ventas">
+    <span class="tabbar__icon">🥣</span><span>Ventas</span>
+  </button>
+  <button class="tabbar__item" data-tab="ganancias">
+    <span class="tabbar__icon">📈</span><span>Ganancias</span>
+  </button>
+</nav>
+
+<button class="fab" id="fabNuevaClienta">+ Nueva clienta</button>
+
+<!-- ===== MODAL CLIENTA ===== -->
+<div class="modal" id="modalClienta" hidden>
+  <div class="modal__sheet">
+    <div class="modal__handle"></div>
+    <h2 class="modal__title" id="modalTitle">Nueva clienta</h2>
+
+    <label class="field">
+      <span class="field__label">Nombre</span>
+      <input type="text" id="inputNombre" placeholder="Nombre de la clienta" autocomplete="off">
+    </label>
+
+    <label class="field">
+      <span class="field__label">Fecha</span>
+      <input type="date" id="inputFecha">
+      <span class="field__hint" id="fechaHint"></span>
+    </label>
+
+    <p class="field__label">Agregar producto</p>
+    <p class="field__hint" style="margin:-4px 0 10px;">Elige un sabor, escoge sus toppings y toca “Añadir al pedido”. Repite para cada pedido, aunque sea el mismo sabor.</p>
+    <div class="flavor-picker" id="flavorPicker"></div>
+
+    <div class="topping-builder" id="toppingBuilder" hidden>
+      <div id="toppingBuilderGratis"></div>
+      <div id="toppingBuilderPago"></div>
+      <button type="button" class="btn btn--add-item" id="btnAddPedidoItem">+ Añadir al pedido</button>
+    </div>
+
+    <p class="field__label" id="pedidoItemsLabel" hidden>Pedido (<span id="pedidoItemsCount">0</span>)</p>
+    <div class="pedido-items" id="pedidoItems"></div>
+    <p class="empty-hint" id="pedidoItemsEmpty" style="padding:14px 4px;">Aún no agregas ningún producto.</p>
+
+    <div class="segmented" id="estadoSegmented">
+      <button type="button" class="segmented__btn" data-estado="pendiente">Pendiente</button>
+      <button type="button" class="segmented__btn" data-estado="pagado">Pagado</button>
+    </div>
+
+    <div class="modal__total">
+      <span>Total</span>
+      <span id="modalTotal">$0.00</span>
+    </div>
+
+    <div class="modal__actions">
+      <button class="btn btn--ghost" id="btnCancelar">Cancelar</button>
+      <button class="btn btn--danger" id="btnEliminar" hidden>Eliminar</button>
+      <button class="btn btn--primary" id="btnGuardar">Guardar</button>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/12.12.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.12.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore-compat.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
